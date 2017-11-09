@@ -1,0 +1,735 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Understanding HTTP Headers and the PHP header() Function</title>
+
+	<link rel="stylesheet" type="text/css" href="http://www.expertsrt.com/CSS/tutorials.css">
+	<style type="text/css">
+	  td{
+		 padding: 3px;
+	  }
+	  tr{
+         background-color: #FFFFFF;
+	  }
+  	  table, caption{
+         width: 18em;
+		 margin: auto;
+		 text-align: left;
+         border: 1px solid #000000;
+	  }
+	  h3{
+       text-decoration: underline;
+       font-size:1em;
+	   margin-top:3em;
+	  }
+	</style>
+</head>
+<body>
+<div id="maincontainerbg">
+
+<div class="fullnav">
+<span class="nav"> <a href="http://www.expertsrt.com/home.shtml">Home</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/phpBB2/">Forum</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/articles/index.shtml">Articles</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/tutorials">Tutorials</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/scripts/">Scripts</a></span>
+
+<span class="nav"> <a href="http://www.expertsrt.com/resources/">Tech Links</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/tech_news/">Tech News</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/Mentors/">Mentors</a></span>
+<span class="nav"> <a href="http://www.expertsrt.com/phpBB2/profile.php?mode=register">Register</a></span>
+</div>
+
+
+<h1 style="margin:1.5em">HTTP Headers and the PHP header() Function</h1>
+
+<div style="float:right;">
+<img src="http://www.expertsrt.com/phpBB2/templates/aluminoid/images/xrt_05.png" alt="ERT Logo" />
+<p><strong>A tutorial by NicholasSolutions</strong></p>
+</div>
+
+<ol class="toc" style="margin-left: 1em">
+<li><a href="#intro">Introduction</a></li>
+<li><a href="#http_overview">Overview of HTTP Headers</a></li>
+<li><a href="#phpheaders">PHP <code>header()</code>: The Basics</a></li>
+<li><a href="#phpheaderex">PHP <code>header()</code>: Some Examples</a></li>
+<li><a href="#requestheaders">Request Headers in PHP</a></li>
+<li><a href="#metaequiv">HTML Meta Tag HTTP Header Equivalents</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+
+
+</ol>
+
+
+<h2><a name="intro" id="intro"></a>Introduction</h2>
+
+<div class="twocol" style="border-width:0">
+ <p>Many beginning and intermediate PHP programmers seem to think the <code><a href="http://www.php.net/manual/function.header.php">header()</a></code> function
+ is some kind of strange voodoo. They work from examples and code snippets and are able to get things done with it,
+ but they don't know quite how it works. That was certainly the
+ way I regarded <code>header()</code> the first time I saw it.</p>
+
+ <p>In reality, it's  quite simple. In this tutorial, I'll explain a little about how HTTP headers work, how they relate to PHP, 
+and a little about their meta tag equivalents.</p>
+</div>
+
+<div class="twocol">
+<p>Hopefully by the time you're done reading this, you'll feel more confident about how to
+use the <code>header()</code> function, and even have some new ideas about how it can help you. We'll also cover some other important 
+topics related to HTTP headers and PHP.  Before we talk about any programming 
+at all, though, we need to quickly (and incompletely) go over how HTTP (<b>H</b>yper<b>T</b>ext <b>T</b>ransfer <b>P</b>rotocol) works in general.</p>
+</div>
+
+
+<h2><a name="http_overview" id="http_overview"></a>HTTP Overview</h2>
+<div class="fullwidth">
+<h3>Headers: words in a conversation</h3>
+<p><a href="http://en.wikipedia.org/wiki/HyperText_Transfer_Protocol">HTTP</a> is the protocol (the set of 'rules') for transferring 
+data (e.g. HTML in web pages, pictures, files) between web servers and 
+client browsers, and usually takes place on <a href="http://en.wikipedia.org/wiki/Port_%28computing%29#Network_port">port</a> 80.  
+This is where the '<code>http://</code>' in website URLs comes from. </p>
+
+<p>The first time most people make a web page, they write the HTML on their computer, view it locally in a browser, 
+upload it to their server, and view it on the web. It might seem like viewing a page locally and viewing it on the server 
+is exactly the same, and that the only data going back and forth between the server and the
+browser is the HTML and any images included in the page. But there is actually a lot of other information that you do not 
+see when you view a file on the web &mdash; the <em>headers</em>.</p>
+
+<p>Headers can be separated into two broad types: <em>Request</em> headers that your browser sends to the server when you request a file, and 
+<em>Response</em> headers that the server sends to the browser when it serves the file. Think of these headers as the words in a
+conversation taking place between the browser and the server. I like to imagine the server as a librarian, and the browser as a 
+researcher asking for a library resource. The browser walks up to the server at the main desk (port 80) and says 
+something like, "Hi, my name 
+is Mozilla, and I'm looking for the resource with the call number 'www.expertsrt.com'. Can you get it for me?" The server listens, and responds "Yes, I found it, let me send it to you. The data in the item is HTML text, and it says '<code>&lt;html&gt;</code>...'" The browser reads through, and comes to an image tag, and asks the server for item with the location in the <code>src</code> attribute. The server looks, finds the file and says "This file is a PNG image, and the data is...." You get the idea.</p>
+
+
+<a id="secondconv"></a><p>Another conversation might go like this:</p>
+<p><em>Browser:</em> Hi, I'm Mozilla, can I have the file at 'www.expertsrt.com/moved.html'?<br />
+<em>Server:</em> That file is no longer there, it is at 'www.expertsrt.com/newloc.html'.<br />
+<em>Browser:</em> Hi, I'm Mozilla, can I have the file at 'www.expertsrt.com/newloc.html'?<br />
+<em>Server:</em> I found the file. Look at it for 10 seconds and then ask me again. It's HTML text and it reads....<br />
+...10 seconds...<br />
+<em>Browser:</em>> Hi, I'm Mozilla, can I have the file at 'www.expertsrt.com/newloc.html'?<br />
+<em>Server:</em> I found the file. Look at it for 10 seconds and then ask me again. It's HTML text and it reads....<br />
+...10 seconds...<br />
+<em>Browser:</em> Hi, I'm Mozilla, can I have the file at 'www.expertsrt.com/newloc.html'?<br />
+<em>Server:</em> I found the file. Look at it for 10 seconds and then ask me again. It's HTML text and it reads....<br />
+....and so on, until the browser is redirected by the user....</p>
+
+<p>As you can see, there is a lot going on that headers control. Using the <code>header()</code> function, you can make the 
+server send any headers that you need want, which allows you to do some really cool things beyond just sending plain old HTML.</p>
+
+<h3>Seeing the whole conversation</h3>
+<p>Before moving ahead, let's get a better idea of how HTTP headers work by viewing a webpage <em>without</em> a browser, so we can 
+see the converation in is entirety. Start by opening a command prompt (in windows, go to Start->Run, type <code>cmd</code>, and click "OK"...if you're using linux you probably already know). At the prompt, type:</p>
+
+<div class="codelisting"><pre><code>telnet expertsrt.com 80</code></pre></div>
+
+<p>and press Enter. This will connect you to expertsrt.com on port 80. Next, copy and paste just the text below:</p>
+
+<div class="codelisting"><pre><code>GET / HTTP/1.1
+Host: expertsrt.com</code></pre></div>
+<p>Don't worry if when
+you type or paste the text, it does not show up in your command window and all you see is the cursor -- it is indeed being sent to the server. The first line says you are using the <code>GET</code> request method to get the resource <code>/</code>
+(i.e. the file in the base directory of the host), and that you are using HTTP version 1.1. The second tells the server which host
+you want to connect to. When you finish typing 'expertsrt.com', hit Enter twice (and twice only). You should almost immediately get a response that looks like: </p>
+
+<div class="codelisting"><pre><code>HTTP/1.1 301 Moved Permanently
+Date: Wed, 08 Feb 2006 07:44:07 GMT
+Server: Apache/2.0.54 (Debian GNU/Linux) mod_auth_pgsql/2.0.2b1 mod_ssl/2.0.54 OpenSSL/0.9.7e
+Location: http://www.expertsrt.com/
+Content-Length: 233
+Content-Type: text/html; charset=iso-8859-1
+
+&lt;!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN"&gt;
+&lt;html&gt;&lt;head&gt;
+&lt;title&gt;301 Moved Permanently&lt;/title&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;h1&gt;Moved Permanently&lt;/h1&gt;
+&lt;p&gt;The document has moved &lt;a href="http://www.expertsrt.com/"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;/body&gt;&lt;/html&gt;
+</code></pre></div>
+
+<p>Whoops! Looks like we requested a resource that wasn't there; it's been permanently moved to the new Location
+<code>http://www.expertsrt.com</code>. If you were using a browser, you'd only see the HTML &mdash; everything before the first blank 
+line is the headers. In fact, modern browsers are even smarter than that &mdash; when they see the <code>Location</code> header on the
+third line, they automatically go there so you don't have to type in a new URL. Let's go to the new URL. By this point, you
+probably got disconnected while you were reading this. If so, just press your up arrow on the keyboard to get your <code>telnet</code> command back, and press enter to reconnect. If you're still connected, you can just go ahead and type the following:</p>
+
+<div class="codelisting"><pre><code>GET / HTTP/1.1
+Host: www.expertsrt.com</code></pre></div>
+
+
+<p>and press Enter twice after the second line. You'll get another similar response telling you that the page is <em>actually</em> at 
+<code>http://www.expertsrt.com/index.php</code>. The server is particular, isn't it? ;-) Repeat the above, but this time type</p>
+
+<div class="codelisting"><pre><code>GET /index.php HTTP/1.1
+Host: www.expertsrt.com</code></pre></div>
+
+<p>Notice that the name of the file we want is in the first line. This time we get flooded with text: the HTML from ERT's homepage. 
+The headers look like</p>
+
+
+<div class="codelisting"><pre><code>HTTP/1.1 200 OK
+Date: Wed, 08 Feb 2006 08:20:07 GMT
+Server: Apache/2.0.54 (Debian GNU/Linux) mod_auth_pgsql/2.0.2b1 mod_ssl/2.0.54 OpenSSL/0.9.7e
+X-Powered-By: PHP/4.4.0
+Transfer-Encoding: chunked
+Content-Type: text/html</code></pre></div>
+
+<p>Simple, no?. Let's move forward and see how this relates to your programming. 
+Don't worry if you didn't understand every single thing 
+that we just did. The important thing is to have a general feel for how the browser and server talk to each other,
+and to realize that <em>there is nothing magic about it.</em> The take home points are:</p>
+<ul>
+<li>The browser and the server talk to each other using headers</li>
+<li>Headers are sent before the main content, and are separated from the main content by a a 
+  double-<a href="http://www.google.com/search?q=define%3ACRLF">CRLF</a>/newline.</li>
+ <li>In the header section, there is one header per line. The name of the header comes first, followed by a colon and a space, followed by the content/value of the header:
+ <div class="codelisting"><code>Header-Name: header-value</code></div></li>
+<li>Headers can contain many types of information and instructions that the server and browser use to help each other know
+what to do next</li>
+</ul>
+
+<div class="note" style="margin-bottom:2em">
+<p><strong>Note</strong>: If you're the type who likes to really dig into the details, you can look at 
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616.html">RFC 2616</a> for the complete HTTP/1.1 specification in all its glory. 
+In particular, <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14">Section 14</a> offers a complete
+definition for each header field.</p>
+</div>
+
+</div>
+
+<div class="twocol" style="border-width:0">
+<h2><a name="phpheaders" id="phpheaders"></a>PHP <code>header()</code>: The Basics</h2>
+<p>Notice the response headers <code>X-Powered-By: PHP/4.4.0</code> and <code>Content-Type: text/html</code> that were 
+returned when we 
+finally got to the homepage. PHP was designed from the beginning to output HTML (the 'H' in PHP stands for 'Hypertext'), and 
+the first time a script generates output (e.g. by using <code>echo</code>), PHP automatically includes those headers for you. This is 
+very convenient, but also contributes to the confusion many PHP beginners have regarding headers &mdash; in more 'bare bones'
+languages like Perl that were not originally designed for the web, sending output without including your own headers produces 
+the dreaded '500 Internal Server Error', so Perl web
+programmers have no choice but to learn about headers immediately.</p>
+
+<p>The <code><a href="http://www.php.net/manual/function.header.php">header()</a></code> function sends HTTP response headers; nothing 
+more, nothing less.	</p>
+<hr />
+</div>
+
+<div class="twocol">
+<p> Using this function, you can make your scripts send
+headers of your choosing to the browser, and create some very useful and dynamic results. However, the first thing you need to know about the 
+<code>header()</code> function is that you have to use it <strong>before</strong> PHP has sent any output (and therefore its default headers).</p>
+
+<p>I doubt there is a PHP programmer in the world who has never seen an error that looks like</p>
+<div class="codelisting">
+<b>Warning:</b> Cannot modify header information - headers already sent by.....
+</div>
+
+<p>As we said above, the response headers are separated from the content by a blank line. This means you can only send them <em>once</em>, and if
+your script has any output (even a blank line or space before your opening <code><span style="color: #0000BB">&lt;?php</span></code> tag), PHP does so without asking
+you. For example, consider the script below, which seems logical enough:</p>
+</div>
+
+
+<div class="fullwidth">
+<div class="codelisting"><code><span style="color: #000000">
+Welcome&nbsp;to&nbsp;my&nbsp;website!&lt;br /&gt;
+<br /><span style="color: #0000BB">&lt;?php
+<br />&nbsp;&nbsp;</span><span style="color: #007700">if(</span><span style="color: #0000BB">$test</span><span style="color: #007700">){
+<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"You're&nbsp;in!"</span><span style="color: #007700">;
+<br />&nbsp;&nbsp;}
+<br />&nbsp;&nbsp;else{
+<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Location:&nbsp;http://www.mysite.com/someotherpage.php'</span><span style="color: #007700">);
+
+<br />&nbsp;&nbsp;}
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+<p>What this script is <em>trying</em> to do is redirect the visitor using the <code>Location</code> header if 
+<code>$test</code> is not true. Do you see the problem? The 'Welcome...' text gets sent no matter what, so the headers are 
+automatically sent. By the time <code>header()</code> is called, it's already too late: instead of getting redirected, 
+the user will just see an error message (or if you have error reporting off, nothing but the 'Welcome...' text).</p>
+
+<p>There are basically two solutions to this. The first is to rewrite the code</p>
+<div class="fullwidth">
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php
+<br />&nbsp;&nbsp;</span><span style="color: #007700">if(</span><span style="color: #0000BB">$test</span><span style="color: #007700">){
+<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'Welcome&nbsp;to&nbsp;my website&lt;br /&gt;You're&nbsp;in!'</span><span style="color: #007700">;
+<br />&nbsp;&nbsp;}
+<br />&nbsp;&nbsp;else{
+<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Location:&nbsp;http://www.mysite.com/someotherpage.php'</span><span style="color: #007700">);
+
+<br />&nbsp;&nbsp;}
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+
+<p>The second is <a href="http://www.php.net/outcontrol">output buffering</a>, which can be somewhat more elegant and easy to use.
+In our example above, rewriting the code wasn't much trouble, but imagine if there had been quite a bit of
+HTML to move around &mdash; it could be pretty cumbersome, and it might make our code harder to follow. While our first example caused an error,  the <em>logic of the program</em> was fine. Output buffering allows you
+to hold on to ('buffer') output (even HTML outside of PHP code tags) and send it to the browser only when you explicitly say to do 
+so. This way you can program however you would like to, and explicitly send the output after you've specified any headers you need to. The two relevant functiosns are
+<code><a href="http://www.php.net/manual/function.ob-start.php">ob_start()</a></code>, which turns output buffering on, and 
+<code><a href="http://www.php.net/manual/function.ob-flush.php">ob_flush()</a></code>, which sends the content that has accumulated
+in the buffer:
+</p>
+
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br />&nbsp;ob_start</span><span style="color: #007700">();&nbsp;&nbsp;</span><span style="color: #666666">//begin&nbsp;buffering&nbsp;the&nbsp;output&nbsp;
+<br /></span><span style="color: #0000BB">?&gt;
+<br /></span>Welcome&nbsp;to&nbsp;my&nbsp;website!
+<br /><span style="color: #0000BB">&lt;?php
+
+<br />&nbsp;&nbsp;</span><span style="color: #007700">if(</span><span style="color: #0000BB">true</span><span style="color: #007700">){
+<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"You're&nbsp;in!"</span><span style="color: #007700">;
+<br />&nbsp;&nbsp;}
+<br />&nbsp;&nbsp;else{
+<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Location:&nbsp;http://www.mysite.com/someotherpage.php'</span><span style="color: #007700">);
+<br />&nbsp;&nbsp;}
+<br />
+<br />&nbsp;&nbsp;</span><span style="color: #0000BB">ob_flush</span><span style="color: #007700">();&nbsp;</span><span style="color: #666666">//output&nbsp;the&nbsp;data&nbsp;in&nbsp;the&nbsp;buffer
+
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+
+<p>I encourage you to read more about all of the output buffering functions, which can be quite useful. You should flush the output
+buffer as soon as possible, especially if you have quite a bit of content to send. Otherwise, your page will appear to load 
+slower, becuase the content will be sent only after it has been entirely assembled, rather than as it is available.</p>
+
+<div class="note">
+<p><strong>Note: The 2nd argument</strong> If you call <code>header()</code> more than once for the same header field, the value for that header will
+be the one included in the <em>last</em> call you made. For example, 
+<div class="codelisting">
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Some-Header:&nbsp;Value-1'</span><span style="color: #007700">);
+<br /></span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Some-Header:&nbsp;Value-2'</span><span style="color: #007700">);
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</div>
+<p>would produce the header <code>Some-Header: Value-2</code>. You can cause both headers to be sent by using the second <em><code>replace</code></em> argument
+for header, which is <code>true</code> by default. If you set this to <code>false</code>, the second header value will not replace the first, 
+and both will be sent. So the code</p>
+<div class="codelisting">
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Some-Header:&nbsp;Value-1'</span><span style="color: #007700">);
+<br /></span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Some-Header:&nbsp;Value-2'</span><span style="color: #007700">,&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">);&nbsp;</span><span style="color: #666666">//don't&nbsp;replace&nbsp;the&nbsp;first&nbsp;value
+
+<br /></span><span style="color: #0000BB">?&gt;</span>&nbsp;</span>
+</code>
+</div>
+<p>will produce the header <code>Some-Header: Value-1, Value-2</code>. You will rarely need this, but is good to know.</p>
+</div>
+
+<p>Armed with a good understanding of how HTTP headers and PHP work together, let's look at some specific examples of using this
+functionality.</p>
+
+<h2><a name="phpheaderex" id="phpheaderex"></a>PHP <code>header()</code>: Some Examples</h2>
+<div class="note"><p><strong>Note:</strong> The code snippets appearing below are just that: snippets from 
+complete working code. When you you include them in your own programs, remember to define all your variables, 
+assign default values, and adhere to other good programming practices.</p></div>
+<h3>Redirecting with the <code>Location</code> header</h3>
+<p>We've seen this one a couple times above: it redirects the browser.</p>
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Location:&nbsp;http/www.mysite.com/new_location.html'</span><span style="color: #007700">);
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+<p>While you can somtimes get away with supplying a relative URL for the value, according to the HTTP specification, you should
+really use an absolute URL.</p>
+
+<p>One mistake that is easy to make with the <code>Location</code> header is not calling 
+<code><a href="http://www.php.net/manual/function.exit.php">exit</a></code> directly afterwards (you may not always want to do
+this, but usually you do). The reason this is a mistake is that the PHP code of the page continues to execute even though the user 
+has gone to a new location. In the best case, this uses system resources unnecessarily. In the worst case, you may perform tasks that 
+you never meant to. Consider the code below:</p>
+
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br /></span><span style="color: #666666">//Redirect&nbsp;users&nbsp;with&nbsp;access&nbsp;level&nbsp;below&nbsp;4
+<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">check_access_level</span><span style="color: #007700">(</span><span style="color: #0000BB">$username</span><span style="color: #007700">)&nbsp;&lt;&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">){
+
+<br />&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Location:&nbsp;http://www.mysite.com/someotherpage.php'</span><span style="color: #007700">);
+<br />}
+<br />
+<br /></span><span style="color: #666666">//Mail&nbsp;users&nbsp;with&nbsp;higher&nbsp;access&nbsp;level&nbsp;the&nbsp;secret&nbsp;code
+<br /></span><span style="color: #0000BB">mail_secret_code</span><span style="color: #007700">(</span><span style="color: #0000BB">$username</span><span style="color: #007700">);
+
+<br />echo&nbsp;</span><span style="color: #DD0000">'The&nbsp;secret&nbsp;email&nbsp;is&nbsp;on&nbsp;its&nbsp;way!'</span><span style="color: #007700">;
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</div>
+
+<p>Unauthorized users are indeed redirected, but in fact, they too will receive the email, because the script continues to run.
+To avoid this, the part for authorized users could be wrapped in an <code>else{}</code> statement, but it is cleaner and easier
+to call <code>exit</code> immediately after the <code>header</code> command to end the execution of the script:</p>
+
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br /></span><span style="color: #666666">//Redirect&nbsp;users&nbsp;with&nbsp;access&nbsp;level&nbsp;below&nbsp;4
+<br /></span><span style="color: #007700">if&nbsp;(</span><span style="color: #0000BB">check_access_level</span><span style="color: #007700">(</span><span style="color: #0000BB">$username</span><span style="color: #007700">)&nbsp;&lt;&nbsp;</span><span style="color: #0000BB">4</span><span style="color: #007700">){
+
+<br />&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Location:&nbsp;http://www.mysite.com/someotherpage.php'</span><span style="color: #007700">);
+<br />&nbsp;&nbsp;exit;&nbsp;</span><span style="color: #666666">//stop&nbsp;script&nbsp;execution
+<br /></span><span style="color: #007700">}
+<br />
+<br /></span><span style="color: #666666">//Mail&nbsp;users&nbsp;with&nbsp;higher&nbsp;access&nbsp;level&nbsp;the&nbsp;secret&nbsp;code
+
+<br /></span><span style="color: #0000BB">mail_secret_code</span><span style="color: #007700">(</span><span style="color: #0000BB">$username</span><span style="color: #007700">);
+<br />echo&nbsp;</span><span style="color: #DD0000">'The&nbsp;secret&nbsp;email&nbsp;is&nbsp;on&nbsp;its&nbsp;way!'</span><span style="color: #007700">;
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+</div>
+
+<h3>Redirecting with the <code>Refresh</code> header</h3>
+<p>The <code>Refresh</code> redirects users like the <code>Location</code> header does, but you can add a delay before the user
+is redirected. For example, the following code would redirect the user to a new page after displaying the current one for 10
+seconds:</p>
+
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Refresh:&nbsp;10;&nbsp;url=http://www.mysite.com/otherpage.php'</span><span style="color: #007700">);
+<br />echo&nbsp;</span><span style="color: #DD0000">'You&nbsp;will&nbsp;be&nbsp;redirected&nbsp;in&nbsp;10&nbsp;seconds'</span><span style="color: #007700">;
+
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+
+<p>Another common application is to force a page to update repeatedly by 'redirecting' to the current page (see the second 
+'conversation' <a href="#secondconv">above</a>). For example, here is a simple page that will 'count' down from 10, with a 3 second
+pause between numbers:</p>
+
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br /></span><span style="color: #007700">if(!isset(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'n'</span><span style="color: #007700">])){
+<br />&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'n'</span><span style="color: #007700">]&nbsp;=&nbsp;</span><span style="color: #0000BB">10</span><span style="color: #007700">;
+<br />}
+<br />
+
+<br />if(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'n'</span><span style="color: #007700">]&nbsp;&gt;&nbsp;</span><span style="color: #0000BB">0</span><span style="color: #007700">){
+<br />&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Refresh:&nbsp;3;&nbsp;url='&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_SELF'</span><span style="color: #007700">].</span><span style="color: #DD0000">'?n='&nbsp;</span><span style="color: #007700">.&nbsp;(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'n'</span><span style="color: #007700">]-</span><span style="color: #0000BB">1</span><span style="color: #007700">)&nbsp;&nbsp;);
+
+<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">'n'</span><span style="color: #007700">];
+<br />}
+<br />else{
+<br />&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'BLAST&nbsp;OFF!'</span><span style="color: #007700">;
+<br />}
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code>
+
+</div>
+<div class="note"><strong>Note:</strong> If the refresh time is set to 0, then the <code>Refresh</code> header is 
+effectively the same as the <code>Location</code> header.</div>
+
+<h3>Serving different types of files and generating dynamic content using the <code>Content-Type</code> header</h3>
+<p>The <code>Content-Type</code> header tells the browser what type of data the server is about to send. Using this header, you can
+have your PHP scripts output anything from plain text files to images or zip files. The table below lists frequently-used 
+<a href="http://en.wikipedia.org/wiki/Mime_type">MIME types</a>:
+</div>
+
+
+<div class="twocol" style="border-width:0; width:55%;">
+<p>You can do several interesting things with this. For example, perhaps you want to send the user a pre-formatted text file
+rather than HTML:</p>
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Content-Type:&nbsp;text/plain'</span><span style="color: #007700">);
+<br />echo&nbsp;</span><span style="color: #0000BB">$plain_text_content</span><span style="color: #007700">;
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+<p>Or perhaps you'd like to prompt the user to download the file, rather than viewing it in the browser. With the help of the
+<code>Content-Disposition</code> header, it's easy to do, and you can even suggest a file name for the user to use:</p>
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Content-Type:&nbsp;application/octet-stream'</span><span style="color: #007700">);
+<br /></span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Content-Disposition:&nbsp;attachment;&nbsp;'
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">.</span><span style="color: #DD0000">'filename="plain_text_file.txt"'</span><span style="color: #007700">);
+<br />echo&nbsp;</span><span style="color: #0000BB">$plain_text_content</span><span style="color: #007700">;
+
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+
+
+<p>Maybe you need to serve a file for download, but you'd like to obscure its true location and name, and only serve it to users
+who are logged in:</p> 
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br /></span><span style="color: #007700">if(</span><span style="color: #0000BB">$b_is_logged_in</span><span style="color: #007700">){
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Content-Type:&nbsp;application/octet-stream'</span><span style="color: #007700">);
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Content-Disposition:&nbsp;attachment;&nbsp;'&nbsp;
+
+<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #007700">.</span><span style="color: #DD0000">'filename="'</span><span style="color: #007700">.</span><span style="color: #0000BB">$different_filename</span><span style="color: #007700">.</span><span style="color: #DD0000">'"'</span><span style="color: #007700">);
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">readfile</span><span style="color: #007700">(</span><span style="color: #DD0000">'/path/to/files/'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">$filename</span><span style="color: #007700">);
+<br />}
+<br />else{
+<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'You&nbsp;are&nbsp;not&nbsp;authorized&nbsp;to&nbsp;view&nbsp;this&nbsp;file'</span><span style="color: #007700">;
+
+<br />}
+<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+
+<p>Perhaps you've dynamically generated an image using PHP's <a href="http://www.php.net/manual/ref.image.php">image functions</a> and you want to display it to the user. You could create a file <code>build_image.php</code> like this</p>
+
+</div>
+
+<div class="twocol" style="width:35%">
+<table style="margin-bottom:2em;">
+<caption>Common MIME types</caption>
+<tr><th>Type</th><th>Description</th></tr>
+<tr><td>text/html</td><td>HTML (PHP default)</td></tr>
+<tr><td>text/plain</td><td>Plain Text</td></tr>
+<tr><td>image/gif</td><td>GIF Image</td></tr>
+<tr><td>image/jpeg</td><td>JPEG Image</td></tr>
+<tr><td>image/png</td><td>PNG Image</td></tr>
+<tr><td>video/mpeg</td><td>MPEG Video</td></tr>
+<tr><td>audio/wav</td><td>WAV Audio</td></tr>
+<tr><td>audio/mpeg</td><td>MP3 Audio</td></tr>
+<tr><td>video/mov<br />video/quicktime</td><td>Quicktime Video</td></tr> 
+<tr><td>video/x-ms-wmv</td><td>Windows WMV video</td></tr>
+<tr><td>audio/x-ms-wma</td><td>Windows WMA audio</td></tr>
+<tr><td>audio/x-realaudio</td><td>RealPlayer Audio/Video (.rm)</td></tr>
+<tr><td>audio/x-pn-realaudio</td><td>RealPlayer Audio/Video (.ram)</td></tr>
+<tr><td>video/x-msvideo<br />video/avi</td><td>AVI Video</td></tr>
+<tr><td>application/pdf</td><td>PDF Document</td></tr>
+<tr><td>application/msword</td><td>MS Word .doc file</td></tr>
+<tr><td>application/zip</td><td>Zip File</td></tr>
+<tr><td>application/octet-stream</td><td>Misc. data. Use to force download or open with application.*</td></tr>
+<tr><td>x-foo/x-bar</td><td>Misc. data. Use to force download ot open with application.*</td></tr>
+</table>
+
+
+</div>
+
+
+
+<div class="fullwidth">
+
+
+<div class="codelisting"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php&nbsp;
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #666666">//build&nbsp;the&nbsp;image&nbsp;above
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Content-Type:&nbsp;image/jpeg'</span><span style="color: #007700">);
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">imagejpeg</span><span style="color: #007700">(</span><span style="color: #0000BB">$image_resouce</span><span style="color: #007700">);
+<br /></span><span style="color: #0000BB">?&gt;</span>
+
+</span>
+</code></div>
+
+<div class="note" style="margin:30px;"><p><strong>Note</strong>: Beware of <a href="http://www.php.net/magic_quotes">magic_quotes</a>!
+PHP's automatic escaping of special characters with a backslash may seem like a good idea at first, but most good programmers
+generally agree that it (a) encourages sloppy programming that does not validate input and (b) causes 
+annoyances in well-written code that would not occur if "magic quoting" were turned off. One such annoyance is
+the corruption of binary data. In the example above, if 
+<a href="http://www.php.net/manual/en/ref.info.php#ini.magic-quotes-runtime"><code>magic_quotes_runtime</code></a> 
+is on, the data that <code>readfile()</code> outputs may have backslashes added to it, thus
+corrupting the file that is sent to the user. Ideally, you should turn <code>magic_quotes_runtime</code> off in your
+<code>php.ini</code> file to avoid this, but if you do not have access to the configuration file, you can also use the 
+<a href="http://www.php.net/manual/en/function.set-magic-quotes-runtime.php">set_magic_quotes_runtime()</a> function
+(pass is the <code>0</code> (zero) integer) to turn the setting off. </p>
+
+<p>Happily, the <a href="http://www.php.net/~derick/meeting-notes.html#magic-quotes">minutes</a> of a recent 
+PHP Developer meeting show that they have decided to abandon magic quotes in future versions (6+) of PHP. Until
+everyone upgrades, however, keeping the problems this feature can cause in mind can save you quite a bit of 
+trouble and frustration.</p>
+</div>
+
+
+<p><br />You might pass the parameters necessary to generate the image via the URL so you can access them in the <code>$_GET</code> array. 
+Then in another page, you might include this image using an <code>img</code> tag:
+<div class="codelisting"><code><span style="color: #000000">
+&lt;img&nbsp;src="build_image.php<span style="color: #0000BB">&lt;?php&nbsp;</span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"?$user_id&amp;amp;$caption"</span><span style="color: #007700">;&nbsp;</span><span style="color: #0000BB">?&gt;</span>"&gt;</span>
+</code></div>
+
+<p>The possibilities are more or less endless. The more PHP programming you do, the more you will find that the <code>Content-Type</code> 
+header truly is your friend.</p>
+
+<div class="note"><p><strong>Note</strong>: The way that browser are <em>supposed</em> to handle content of various MIME types, and the way they actually <em>do</em>
+may not always be consistent (especially with Internet Explorer), so you're well-advised to test your pages in the browsers
+you need to support to make sure they behave as expected. The PHP Manual has many helpful tips in the
+<a href="http://www.php.net/manual/function.header.php#usernotes">user-contributed
+comments</a> on the <code>header()</code> page.</p></div>
+
+
+
+
+
+
+<h3>Preventing Page Caching</h3>
+<p>PHP pages often generate very dynamic content, and to prevent users from missing updates by viewing cached pages, it is 
+often helpful to be able to tell browsers not to cache certain pages. The following snippet works quite well on  the
+browsers that are likely to visit your site:</p>
+<div class="codelisting">
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php
+<br />header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Cache-Control:&nbsp;no-cache,&nbsp;no-store,&nbsp;must-revalidate'</span><span style="color: #007700">);&nbsp;</span><span style="color: #666666">//HTTP/1.1
+<br /></span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Expires:&nbsp;Sun,&nbsp;01&nbsp;Jul&nbsp;2005&nbsp;00:00:00&nbsp;GMT'</span><span style="color: #007700">);
+
+<br /></span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Pragma:&nbsp;no-cache'</span><span style="color: #007700">);&nbsp;</span><span style="color: #666666">//HTTP/1.0
+<br /></span><span style="color: #0000BB">?&gt;</span>&nbsp;</span>
+</code>
+</div>
+
+<p>The <code>Expires</code> header can be any date in the past. As with MIME types, browsers (especially older ones) may not 
+always listen properly to your caching instructions (although most modern ones will).</p>
+
+<h3>Other Applications</h3>
+<p>There are other ways you can use headers as well, such as setting the 
+<a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">HTTP Response Code</a>, or in performing 
+<a href="http://www.php.net/manual/features.http-auth.php">HTTP Authentication</a> (if you are running PHP as an Apache module).
+Now that you understand how <code>header()</code> works and how to use it, you'll be able to do all sorts of things you 
+might not have thought of before.</p>
+
+<a name="requestheaders" id="requestheaders"></a><h2>Request Headers in PHP</h2>
+<p>We've covered some of the things you can do with response headers above. We can also get a great deal of information
+from the request headers received by the server from the browser. There are two ways to access these. First, many of the 
+values in the <a href="http://www.php.net/reserved.variables"><code>$_SERVER</code> array</a> are determined from the
+request headers. Second, if PHP is installed as an Apache module, then 
+<a href="http://www.php.net/manual/function.apache-request-headers.php">apache_request_headers()</a> will return an 
+array of all request headers (even those not in <code>$_SERVER</code>).</p>
+
+
+
+<h3>Security first: don't trust request headers</h3>
+<p>Since request headers are set by the browser, which is controlled by the client, <strong>you must never trust request
+headers for information that is important to the security of your site</strong>. A good example is the 
+<code>$_SERVER['HTTP_REFERER']</code> variable, which <em>should</em> hold the URL of the page that referred the 
+user to the current one. A common mistake among beginners is to think that they can use this to make sure
+that users only access pages through a certain path, and that they therefore do not need to 
+worry about server side data validation. For example,
+consider this code, which attempts to make sure that data has been submitted from a specific page, rather
+than a custom form on another website:</p>
+<div class="codelisting">
+<code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php
+<br />&nbsp;</span><span style="color: #007700">if(</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'HTTP_REFERER'</span><span style="color: #007700">]&nbsp;!=&nbsp;</span><span style="color: #DD0000">'http://www.mysite.com/myform.html'</span><span style="color: #007700">){
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'Refresh:&nbsp;5;&nbsp;url=http://www.mysite.com/myform.html'</span><span style="color: #007700">);
+<br />&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'You&nbsp;must&nbsp;use&nbsp;the&nbsp;form&nbsp;on&nbsp;my&nbsp;site...redirecting&nbsp;now.'</span><span style="color: #007700">;
+
+<br />&nbsp;}
+<br />&nbsp;else{
+<br />&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">insert_data</span><span style="color: #007700">(</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'var1'</span><span style="color: #007700">],&nbsp;</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'var2'</span><span style="color: #007700">]);
+<br />&nbsp;}
+<br /></span><span style="color: #0000BB">?&gt;</span>&nbsp;</span>
+</code>
+</div>
+<p>This might work to deter an unsophisticated hacker who is using his web browser to submit data through a custom form, but someone
+who is a little more savvy could easily submit data via a telnet session like we did above, including the request header
+<div class="codelisting">
+<code>Referer: http://www.mysite.com/myform.html</code>
+</div>
+<p>and easily defeat this 'protection'. The moral of the story is: use HTTP request headers to gather statistics and to help make 
+the user experience more pleasant &mdash; most request headers you receive will be supplied by standard browsers and will be 
+entirely truthful...But <strong>do not</strong> rely on request headers for any issues pertaining to security.</p>
+
+<h3>Using HTTP request headers</h3>
+
+<p>There are several things you can do with these. Using <code>$_SERVER['HTTP_USER_AGENT']</code> you can detect the type of browser
+the user says it has. You might check the <code>$_SERVER['HTTP_ACCEPT_LANGUAGE']</code> (perhaps along with <code>$_SERVER['HTTP_ACCEPT_CHARSET']</code> and some 
+<a href="http://www.expertsrt.com/articles/Rod/city_country_IP.php">IP address geolocation</a>) to help determine the 
+best language in which to serve your pages to a given user.
+Although <code>$_SERVER['HTTP_REFERER']</code> is not reliable for security
+purposes, it could be useful as an aid for building statistics about your website traffic or customizing content to 
+match the path the user took to reach a given page. If for some reason you want to manipulate the raw query string used when
+the page was accessed, you can look in <code>$_SERVER['QUERY_STRING']</code>. Looking in <code>$_SERVER['REQUEST_METHOD']</code> will
+tell you whether your page was accessed via  <code>GET</code> or <code>POST</code>. There's quite a bit of information there for
+you to find creative uses for. 
+
+<a name="metaequiv" id="metaequiv"></a><h2>HTML Meta Tag HTTP Header Equivalents</h2>
+<p>Chances are, before reading this article, you have seen or used the HTML meta tag below to redirect a user:</p>
+<div class="codelisting">
+<code>&lt;meta http-equiv="refresh" content="0;http://www.mysite.com/somepage.html" /&gt;</code>
+</div>
+<p>Look familiar? The 'http-equiv' meta tags are 'equivalent' to HTTP response headers, and were introduced so that people
+writing HTML pages without server side programming would have access to the powerful functionality described above. Using these
+meta tags is simple: they can be placed anywhere in the <code>&lt;head&gt;</code> of the document, and their <code>http-equiv</code>
+attribute contains the header name, while the <code>content</code> attribute contains the value for the header.</p>
+
+<p>I've found that these, like the HTTP headers in general, often produce confusion, but now they should seem quite simple to you.
+Although I usually prefer to use the PHP <code>header()</code> function, these meta tag HTTP header equivalents are often very handy
+for things like specifying the character set. For example, I often use this is my HTML pages (and sometimes my PHP ones):
+<div class="codelisting">
+<code>&lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8" /&gt;</code>
+</div>
+
+<div class="note">
+ <strong>Note:</strong> Support for HTTP headers as equivalet meta tags is not uniformally supported, so it is usually safer and 
+ faster to use the headers themselves if you can. Also, it should be obvious that some headers and values will not work as meta
+ equivalents: you cannot set the <code>Content-Type</code> to <code>image/png</code> when the real headers have been sent and the
+ browser is already reading the HTML ;-)
+
+</div>
+
+<a name="conclusion" id="conclusion"></a><h2>Conclusion</h2>
+<p>Now that you are done with this article, you should have a pretty firm grasp of how HTTP works, how request and response headers
+are used, and how you can employ this functionality in your programming. This reasonably detailed knowledge should also enable
+you to start thinking more critically about your web application efficiency and security. I hope that as you move forward with your
+programming, you will find that you've become quite comfortable working with HTTP headers, and that you are able to exploit them to 
+make your job easier and your pages better.</p>
+
+<p>As a parting thought, remember that headers are like words: they convey information and ask for certain actions to be performed, 
+but by themselves they don't force anything to happen. 99.9% of the time, cooperative browsers are talking to cooperative servers,
+and everything happens smoothly. But you have to remember that, as in life, every once in a while you'll run across a jerk 
+(a hacker), or someone who's got his own way of doing things (Internet Explorer). Web development is very much a job of customer 
+service, so you've got to do your best to keep the crooks out, and accomodate the customers with 'special needs.' ;-)</p>
+
+
+
+</div>
+
+<hr />
+
+
+
+<p class="footer"><br />I hope you found this tutorial helpful. Feel free to send questions, comments, or flames (but please, no spam) to info [_at_] nicholassolutions (dot) com (you may also use the contact form on our website, 
+<a href="http://www.nicholassolutions.com">nicholassolutions.com</a>).
+If this is your first time visiting ERT, why not stay and look around for a while? This article is just a small part of the content we have to offer. </p>
+
+
+<!--Creative Commons License-->
+<p class="footer">
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-nd/2.5/" class="footer">
+<img alt="Creative Commons License" src="http://creativecommons.org/images/public/somerights20.png"/></a>
+	<!--/Creative Commons License-->
+
+	<!-- <rdf:RDF xmlns="http://web.resource.org/cc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+	<license rdf:resource="http://creativecommons.org/licenses/by-nc-nd/2.5/" />
+	<dc:title>Compiling Perl Scrpts into Standalone Executables</dc:title>
+	<dc:date>2004</dc:date>
+	<dc:creator><Agent><dc:title>Matthew Nicholas (nicholassolutions.com)</dc:title></Agent></dc:creator>
+	<dc:rights><Agent><dc:title>Matthew Nicholas (nicholassolutions.com)</dc:title></Agent></dc:rights>
+	<dc:type rdf:resource="http://purl.org/dc/dcmitype/Text" />
+	</Work>
+	<License rdf:about="http://creativecommons.org/licenses/by-nc-nd/2.5/"><permits rdf:resource="http://web.resource.org/cc/Reproduction"/>
+	<permits rdf:resource="http://web.resource.org/cc/Distribution"/><requires rdf:resource="http://web.resource.org/cc/Notice"/><requires rdf:resource="http://web.resource.org/cc/Attribution"/><prohibits rdf:resource="http://web.resource.org/cc/CommercialUse"/>
+	</License></rdf:RDF> -->	
+
+
+This tutorial contains <strong>copyright-protected</strong> content, which may be distributed under the <em>Creative Commons Attribution NonCommercial NoDerivs 2.5 License</em></p>
+
+<p class="footer">
+   <a href="http://validator.w3.org/check?uri=referer" class="footer"><img
+        src="http://www.w3.org/Icons/valid-html401"
+        alt="Valid HTML 4.01 Strict" height="31" width="88" /></a>
+
+I've taken the time to write an interoperable page that validates as HTML 4.01 Strict. I encourage you to do the same  ;-)</p>
+
+  
+
+</div></div>
+</body>
+</html>
