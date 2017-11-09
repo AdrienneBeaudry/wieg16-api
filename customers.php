@@ -1,3 +1,7 @@
+<?php
+header("content-type: application/json");
+?>
+
 [
   {
     "email": "marcus.dalgren@overlay.se",
