@@ -5,7 +5,12 @@ require 'config.php';
 
 header("content-type: application/json");
 
-$sql = "SELECT customers.* FROM customers";
+if (isset($_GET['customer_id'])) {
+    $get_customer_id = $_GET['customer_id'];
+    $sql = "SELECT customers.* FROM customers WHERE id=$get_customer_id";
+} else {
+    $sql = "SELECT customers.* FROM customers";
+}
 
 try {
     $statement = $pdo->prepare($sql);
