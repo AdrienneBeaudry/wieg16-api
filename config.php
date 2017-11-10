@@ -6,6 +6,12 @@ $servername = "localhost";
 $username = "root";
 $password = "root";
 $dbname = "wieg16";
+$dsn = "mysql:host=$servername;dbname=$dbname";
+$options = [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false  ];
+
+$pdo = new PDO($dsn, $username, $password, $options);
 
 /*
 // Create connection
@@ -49,12 +55,12 @@ try {
         $company = $customer['address']['company'];
         $country = $customer['address']['country'];
 
-        $sqlCustomer = "INSERT INTO customers (id, email, firstname, lastname, gender, customer_activated, 
-                group_id, customer_company, default_billing, default_shipping, is_active, created_at, 
-                updated_at, customer_invoice_email, customer_extra_text, customer_due_date_period) 
+        $sqlCustomer = "INSERT INTO customers (id, email, firstname, lastname, gender, customer_activated,
+                group_id, customer_company, default_billing, default_shipping, is_active, created_at,
+                updated_at, customer_invoice_email, customer_extra_text, customer_due_date_period)
                 VALUES ('$id', '$email', '$firstname', '$lastname',
                 '$gender', '$customer_activated', '$group_id', '$customer_company', '$default_billing', '$default_shipping',
-                '$is_active', '$created_at', '$updated_at', '$customer_invoice_email', '$customer_extra_text', 
+                '$is_active', '$created_at', '$updated_at', '$customer_invoice_email', '$customer_extra_text',
                 '$customer_due_date_period')";
 
 

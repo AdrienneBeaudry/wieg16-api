@@ -1,5 +1,6 @@
 <?php
 
+/*
 function get_webpage($url) {
     $ch = curl_init($url);
 
@@ -10,6 +11,7 @@ function get_webpage($url) {
     curl_close($ch);
     return $response;
 }
+
 
 function count_words($keywords = [], $content = ''){
     //Transform to lowercase + strip all html tags of corpus
@@ -28,3 +30,4 @@ function count_words($keywords = [], $content = ''){
 function display_search_results($word, $nr){
     echo "<p><strong>$word</strong> appears <strong>$nr</strong> times in the document</p>";
 }
+*/
