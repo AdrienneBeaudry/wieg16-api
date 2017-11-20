@@ -4,11 +4,15 @@ require 'functions.php';
 require 'config.php';
 $code = 200;
 $response = [];
+$get_customer_id = $_GET['customer_id'];
 
-if (isset($_GET['customer_id'])) {
-    $get_customer_id = $_GET['customer_id'];
+if (isset($_GET['customer_id'])&&($_GET['address'])) {
+    $sql = "SELECT customer_addresses.* FROM customer_addresses WHERE customer_id=$get_customer_id";
+}
+elseif (isset($_GET['customer_id'])) {
     $sql = "SELECT customers.* FROM customers WHERE id=$get_customer_id";
-} else {
+}
+else {
     $sql = "SELECT customers.* FROM customers";
 }
 
