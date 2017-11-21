@@ -1,6 +1,6 @@
 <?php
 
-/*
+
 function get_webpage($url) {
     $ch = curl_init($url);
 
@@ -12,7 +12,7 @@ function get_webpage($url) {
     return $response;
 }
 
-
+/*
 function count_words($keywords = [], $content = ''){
     //Transform to lowercase + strip all html tags of corpus
     $content = strtolower(strip_tags($content));

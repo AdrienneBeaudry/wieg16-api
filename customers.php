@@ -36,11 +36,6 @@ try {
             });
             $customers[$key]['address'] = $address;
 
-            // Note: the function array_filter will retain the original index for each values that "passes the filter"
-            // or passes the test. In order to reset the index to 0, 1, 2, 3 we will need to use the function array_values.
-            // $address = array_values($address);
-            
-
             if ($show_address_only != null) {
                 if (count($address) > 0) {
                     $response = $address;
@@ -54,8 +49,6 @@ try {
                 $response = $customers;
             }
         }
-
-
     } else {
         $code = 404;
         $response = ['message' => 'Customer not found'];
