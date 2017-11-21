@@ -20,13 +20,13 @@ try {
 
     $companies = array_unique($companies);
 
-    
+    /*
     foreach ($companies as $company) {
         $sqlCompany = "INSERT INTO companies(company_name) VALUES ('$company')";
         $pdo->exec($sqlCompany);
         echo "New company record created successfully for customer ID <strong>$company</strong>";
     }
-
+    */
 
 } catch (PDOException $e) {
     echo $sql . "<br>" . $e->getMessage();
